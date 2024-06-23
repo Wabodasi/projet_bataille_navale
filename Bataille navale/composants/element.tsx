@@ -10,17 +10,17 @@ const desiredHeight: Float = height * 0.9;
 const desiredWidth: Float = width * 1;
 
 
-
-
-function dd()
-{
-  
+interface PionPosition {
+  x: number;
+  y: number;
 }
 
 
 function El(): React.JSX.Element {
 
   const [position, setPosition] = useState({x: 0,y: 0});
+  const [pionPositions, setPionPositions] = useState<PionPosition[]>([]);
+
 
   const restreindre = (pos: Float, maxPos: Float, minPos: Float) => {
     
@@ -36,14 +36,6 @@ function El(): React.JSX.Element {
     return pos;
   }
 
-  function name() {
-    return(
-    <View>
-      <Text>wabo</Text>
-    </View>
-    )
-    
-  }
 
   // const pan = useRef(new Animated.ValueXY()).current;
 
@@ -57,25 +49,31 @@ function El(): React.JSX.Element {
   //   }),
   // ).current;
 
-  const panResponder2 = useRef(
-    PanResponder.create({
-      onStartShouldSetPanResponder : () => true,
-      onPanResponderMove: (event, gestureState) => 
-      {
-        setPosition({x: gestureState.moveX + position.x  , y: gestureState.moveY + position.y })
-      },
-      onPanResponderRelease: (event, gestureState) => {
+  // const panResponder2 = useRef(
+  //   PanResponder.create({
+  //     onStartShouldSetPanResponder : () => true,
+  //     onPanResponderMove: (event, gestureState) => 
+  //     {
+  //       setPosition({x: gestureState.moveX + position.x  , y: gestureState.moveY + position.y })
+  //     },
+  //     onPanResponderRelease: (event, gestureState) => {
         
-      },
-      onPanResponderGrant: (event, gestureState) => {
+  //     },
+  //     onPanResponderGrant: (event, gestureState) => {
         
-      }
-    })
-  ).current
+  //     }
+  //   })
+  // ).current
 
-  const handleTap = (event: any) => {
+  // const handleTap = (event: any) => {
+  //   const { locationX, locationY } = event.nativeEvent;
+  //   setPosition({ x: restreindre(locationX, desiredWidth, 0), y: restreindre(locationY, desiredHeight, 0) });
+  // };
+
+  const handlePress = (event: any) => {
     const { locationX, locationY } = event.nativeEvent;
-    setPosition({ x: restreindre(locationX, desiredWidth, 0), y: restreindre(locationY, desiredHeight, 0) });
+    // Ajoutez la position du pion à l'état
+    setPionPositions([...pionPositions, { x: restreindre(locationX, desiredWidth, 0), y: restreindre(locationY, desiredHeight, 0) }]);
   };
 
 
@@ -94,9 +92,25 @@ function El(): React.JSX.Element {
     //     </Text>
     //   </Animated.View>
     // </View>
-     <View style={styles.container}>
-      <TouchableOpacity onPress={handleTap} style={{backgroundColor: "#011111", height: desiredHeight, width: desiredWidth}}>
-        <Animated.View  style={[styles.element,{transform: [{translateX: position.x}, {translateY: position.y}]}]}/>
+    //  <View style={styles.container}>
+    //   <TouchableOpacity onPress={handleTap} style={{backgroundColor: "#011111", height: desiredHeight, width: desiredWidth}}>
+    //     <View  style={[styles.element,{top: position.y, left: position.x}]}/>
+    //   </TouchableOpacity>
+    // </View>
+
+    
+    <View style={styles.container}>
+      
+      <TouchableOpacity
+        style={{backgroundColor: "#011111", height: desiredHeight, width: desiredWidth}}
+        onPress={handlePress}>
+
+        {pionPositions.map((pion, index) => (
+        <View
+          key={index}
+          style={[styles.element, { left: pion.x, top: pion.y }]}
+        />
+      ))}
       </TouchableOpacity>
     </View>
 
