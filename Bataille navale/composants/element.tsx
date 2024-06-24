@@ -20,7 +20,7 @@ enum GameStates{
   JEU_TERMINE,
   DEBUT_DU_JEU
 }
-let state = GameStates.DEBUT_DU_JEU
+let state = GameStates.PLACE_PIONS
 
 interface PionPosition {
   x: number;
@@ -90,19 +90,20 @@ function El(): React.JSX.Element {
 
     if(state === GameStates.PLACE_PIONS)
     {
+      
       if(pionPositions.length == nombreMaxPion)
       {
-        state = GameStates.POSITIONNE_CROIX
+        return
       }
       else
       {
         setPionPositions([...pionPositions, 
-          { x: restreindre(locationX, desiredWidth, 0), y: restreindre(locationY, desiredHeight, 0) }]);
+          { x: restreindre(locationX, desiredWidth, 0), y: restreindre(locationY, desiredHeight, 0) }])
+          ;
       }
       
+        
     }
-
-    
     
   }
   const handlePressPosCroix = (event: any) =>
@@ -149,7 +150,7 @@ function El(): React.JSX.Element {
   };
 
   // Utiliser pour effacer les pions sur un terrain
-  const resetTerrain = (terrainDejeux: number) => {
+  const handleresetTerrain = (terrainDejeux: number) => {
     
     if(terrainDejeux === TERRAIN_DE_JEUX1)
     {
@@ -216,20 +217,30 @@ function El(): React.JSX.Element {
     }
     
   }
-  function Dialog1()
-  {
-    if(state == GameStates.POSITIONNE_CROIX)
-    {
-      Alert.alert("DEBUT DU JEUssdd", "Positionne tes pions sur le terrain")
-      state = GameStates.DEBUT_DU_JEU
-    }
-    
-  }
+  
 
   function setState(etat:number)
   {
     state = etat
   }
+
+  const MenuStatePositionneCroix = () =>
+  {
+    return (
+      <View style={styles.container2FootMenu}>
+        <TouchableOpacity style={styles.button} onPress={() => {handleresetTerrain(TERRAIN_DE_JEUX1)}}>
+          <Text style={styles.buttonText}>Reset pion</Text>
+        </TouchableOpacity>
+
+        <View style={{width: 100}} />
+
+        <TouchableOpacity style={styles.button}>
+          <Text style={styles.buttonText}>Continuer</Text>
+        </TouchableOpacity>
+      </View>
+    )
+  }
+
 
   // Declaration des UseEffects
   useEffect( () => {
@@ -237,8 +248,13 @@ function El(): React.JSX.Element {
   }
     , [croixPositions2])
   
-    
-  Dialog()
+  useEffect(() => {
+    // Affiche la boîte de dialogue au démarrage du jeu
+    Alert.alert("Bienvenue", "Prêt à jouer ? plaste tes pions sur le terrain");
+  }, []);
+
+
+
   
   return (
     
@@ -291,9 +307,8 @@ function El(): React.JSX.Element {
 
       </TouchableOpacity>}
 
-      <View style={{height: heightFootmenu, width: WidthFootmenu, backgroundColor: "white"}}>
-        
-      <Button
+      <View style={{height: heightFootmenu, width: WidthFootmenu, backgroundColor: "white"}}>  
+      {/* <Button
         onPress={handleChangeTerrain}
         title="changer de terrain"
         color="#841584"
@@ -304,10 +319,13 @@ function El(): React.JSX.Element {
         title="auto"
         color="#841584"
         accessibilityLabel="En savoir plus sur ce bouton violet"
-      />
-
-        
+      /> */}
+      <MenuStatePositionneCroix/>
       </View>
+
+      
+
+
 
     </View>
 
@@ -341,6 +359,28 @@ const styles = StyleSheet.create({
     height: 25,
     backgroundColor: 'orange',
     position: 'absolute',
+  },
+  button: {
+    backgroundColor: "#007AFF",
+    padding: 10,
+    marginVertical: 10,
+    borderRadius: 8,
+    width: 130,
+    height: 50,
+    justifyContent:"center",
+    alignItems: "center",
+
+  },
+  buttonText: {
+    color: "white",
+    fontSize: 16,
+    fontWeight: "bold",
+  },
+  container2FootMenu: {
+    flex: 1,
+    flexDirection: "row",
+    justifyContent: "center",
+    alignItems: "center",
   },
 
 });
