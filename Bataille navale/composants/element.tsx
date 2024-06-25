@@ -4,6 +4,14 @@ import {Alert, Animated, Button, Dimensions, PanResponder, StyleSheet, Text, Toa
 import { EventArgs } from 'react-native/Libraries/Performance/Systrace';
 import { Float, Int32 } from 'react-native/Libraries/Types/CodegenTypes';
 import EventEmitter from 'react-native/Libraries/vendor/emitter/EventEmitter';
+import {GoogleGenerativeAI} from '@google/generative-ai';
+
+
+const API_KEY = 'AIzaSyA7FooSqjKxemabtIefdmV_BmVQz5rgInY';
+const genAI = new GoogleGenerativeAI(API_KEY);
+
+
+
 
 const {width, height} = Dimensions.get("window")
 const desiredHeight: Float = height * 0.9;
@@ -43,6 +51,10 @@ const restreindre = (pos: Float, maxPos: Float, minPos: Float) => {
 
   return pos;
 }
+
+
+
+
 
 function genererNombreEntier(min: number, max: number): number {
   const randomFloat = Math.random(); 
@@ -147,6 +159,29 @@ function El(): React.JSX.Element {
   
     setPionPositions2([...pionPositions2, ...newPionPositions]); // Ajouter toutes les nouvelles positions à l'array existant
   };
+
+
+
+
+  //integration gemini
+  const askgemini = async () => {
+        try {
+          const model = genAI.getGenerativeModel({ model: 'gemini-pro' });
+          const chat = model.startChat();
+          const result = await chat.sendMessage('peux tu me donner ma position actuelle  ?');
+          const text = await result.response.text();
+          const reponse:string = text;
+          console.log(reponse);
+        } catch (err) {
+          console.error('Erreur: veuillez verifier votre connexion internet');
+        }
+  };
+  
+  
+    
+  
+    //fin integration gemini
+
 
   // Utiliser pour effacer les pions sur un terrain
   const resetTerrain = (terrainDejeux: number) => {
@@ -306,13 +341,21 @@ function El(): React.JSX.Element {
         accessibilityLabel="En savoir plus sur ce bouton violet"
       />
 
-        
+        <Button
+        onPress={askgemini}
+        title="Gemini"
+        color="#841584"
+        accessibilityLabel="En savoir plus sur ce bouton violet"
+      />
+
       </View>
 
     </View>
 
     
   );
+
+  
 }
 
 
@@ -323,6 +366,7 @@ const styles = StyleSheet.create({
     //flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
+    height:"80%"
   },
   element: {
     width: 25,
