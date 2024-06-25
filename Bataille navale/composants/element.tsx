@@ -17,6 +17,7 @@ enum GameStates{
   POSITIONNE_CROIX,
   ATTEND_JOUEUR_ADVERSE,
   TOUR_JOUEUR2_TERMINE,
+  TOUR_JOUEUR1_TERMINE,
   ANIMATION,
   JEU_TERMINE,
   DEBUT_DU_JEU
@@ -117,10 +118,13 @@ function El(): React.JSX.Element {
       
       if( croixPositions2.length >= 1)
       {
-        return
+
       }
       setCroixPositions2 ([...croixPositions2, 
         { x: restreindre(locationX, desiredWidth, 0), y: restreindre(locationY, desiredHeight, 0) }]);
+      
+      // changement de l'etat du jeu
+      setCurrentGameState(GameStates.TOUR_JOUEUR1_TERMINE)
     }
     
     
@@ -182,7 +186,7 @@ function El(): React.JSX.Element {
   {
     for(let i = 0; i < pionPositions2.length; i++)
     {
-      let touche = pionsSeTouchent(croixPositions2[0], pionPositions2[i], 25, 25) 
+      let touche = pionsSeTouchent(croixPositions2[croixPositions2.length-1], pionPositions2[i], 25, 25) 
       if(touche)
       {
         ToastAndroid.show("Touche", ToastAndroid.SHORT);    
@@ -195,17 +199,23 @@ function El(): React.JSX.Element {
   function cpuPlay()
   {
     ToastAndroid.show("CPU", ToastAndroid.SHORT)
-    if( croixPositions1.length >= 1)
+
+    if(true)
+    {
+      if( croixPositions1.length >= 1)
       {
-        // ici on change d'etat
-        return
+        
       }
 
       // generation d'une position aleatoire
       const pos = getPositionAleatoire(0, desiredWidth, 0, desiredHeight);
       // ajout de la position
       setCroixPositions1 ([...croixPositions1, 
-        { x: restreindre(pos.x, desiredWidth, 0), y: restreindre(pos.y, desiredHeight, 0) }]);
+      { x: restreindre(pos.x, desiredWidth, 0), y: restreindre(pos.y, desiredHeight, 0) }]);
+      setCurrentGameState(GameStates.TOUR_JOUEUR2_TERMINE)
+    }
+    
+      
   }
 
   function actionsCpu()
@@ -223,7 +233,7 @@ function El(): React.JSX.Element {
     {
       // Ajout des pions automatiquement sur le terrain2 par cpu
       handlerAutoAjoutPion()
-      //state = GameStates.POSITIONNE_CROIX
+      // state = GameStates.POSITIONNE_CROIX
       setCurrentGameState(GameStates.POSITIONNE_CROIX)
 
       // changement du terrain de jeu
@@ -239,8 +249,9 @@ function El(): React.JSX.Element {
   const handleJouer = () =>
   {
     // Ajout des pions automatiquement sur le terrain2 par cpu
-    handlerAutoAjoutPion()
-    //state = GameStates.POSITIONNE_CROIX
+    //handlerAutoAjoutPion()
+    // state = GameStates.POSITIONNE_CROIX
+
     setCurrentGameState(GameStates.POSITIONNE_CROIX)
 
     // changement du terrain de jeu
@@ -301,8 +312,9 @@ function El(): React.JSX.Element {
   }
   
   // Mes composants locaux
-  const MenuStatePositionneCroix = () =>
+  const MenuStateTourJoueur1termine = () =>
   {
+    GameStates.TOUR_JOUEUR1_TERMINE
     return (
       <View style={styles.container2FootMenu}>
         <TouchableOpacity style={styles.button} onPress={handleCedeTour}>
@@ -356,7 +368,7 @@ function El(): React.JSX.Element {
         onPress={handlePress}>
         </TouchableOpacity>
 
-        <View style={{height: desiredHeight, width: desiredWidth, position:"absolute"}}>
+        <View style={{height: desiredHeight, width: desiredWidth, position:"absolute", pointerEvents: "none"}}>
           {pionPositions.map((pion, index) => (
 
             <View
@@ -377,13 +389,13 @@ function El(): React.JSX.Element {
 
       {/* terrain de jeu 2 */}
       {!terrainVisible && <View>
+        
         <TouchableOpacity
         style={{backgroundColor: "#01110", height: desiredHeight, width: desiredWidth}}
-        onPress={handlePressPosCroix}>
-        
-
+        onPress={handlePressPosCroix}>        
         </TouchableOpacity>
-        <View style={{height: desiredHeight, width: desiredWidth, position:"absolute"}}>
+
+        <View style={{height: desiredHeight, width: desiredWidth, position:"absolute", pointerEvents: "none" }}>
           {pionPositions2.map((pion, index) => (
           
             <View
@@ -399,14 +411,15 @@ function El(): React.JSX.Element {
             style={[styles.element3, { left: pion.x, top: pion.y }]}/>
 
           ))}
+          
         </View>
 
       </View>}
 
       <View style={{height: heightFootmenu, width: WidthFootmenu, backgroundColor: "white"}}> 
         { currentGameState == GameStates.PLACE_PIONS && <MenuStatePlacePions/>}
-        { currentGameState == GameStates.POSITIONNE_CROIX && <MenuStatePositionneCroix/>}
-        { currentGameState == GameStates.TOUR_JOUEUR2_TERMINE && <MenuStateAttenteCpu/>}
+        { currentGameState == GameStates.TOUR_JOUEUR1_TERMINE && <MenuStateTourJoueur1termine/>}
+        { currentGameState == GameStates.TOUR_JOUEUR2_TERMINE  && <MenuStateAttenteCpu/>}
       </View>    
 
     </View>
