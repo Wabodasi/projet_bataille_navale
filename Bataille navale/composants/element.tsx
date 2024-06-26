@@ -34,6 +34,7 @@ interface PionPosition {
 interface Pion{
   position: PionPosition;
   estToucher: Boolean;
+  estVisible: Boolean;
 }
 
 interface Croix{
@@ -96,7 +97,7 @@ function El(): React.JSX.Element {
   
   const [terrainVisible, setTerrainVisible] = useState<Boolean>(true)
   const [currentGameState, setCurrentGameState] = useState(GameStates.PLACE_PIONS) 
-  const nombreMaxPion = 5;
+  const nombreMaxPion = 10;
   
 
 
@@ -117,7 +118,8 @@ function El(): React.JSX.Element {
         let newPion: Pion = {
           position: { x: restreindre(locationX, desiredWidth, 0), y: restreindre(locationY, desiredHeight, 0) },
 
-          estToucher: false
+          estToucher: false,
+          estVisible: true,
 
         }
 
@@ -184,7 +186,10 @@ function El(): React.JSX.Element {
       newPion.push({
 
         position: { x: restreindre(pos.x, desiredWidth, 0), y: restreindre(pos.y, desiredHeight, 0) },
-        estToucher: false
+        estToucher: false,
+
+        /////;;;;;;;;
+        estVisible: false 
 
       }
         ); // Ajouter la nouvelle position à l'array temporaire
@@ -223,22 +228,59 @@ function El(): React.JSX.Element {
   // utiliser pour savoir si un joueur a toucher des pions
   function hitPions()
   {
-    for(let i = 0; i < pions2.length; i++)
+    
+    
+    if(currentGameState == GameStates.TOUR_JOUEUR1_TERMINE)
     {
-      let touche = pionsSeTouchent(croixPositions2[croixPositions2.length-1].position, pions2[i].position, 12.5, 12.5) 
-      if(touche)
+      for(let i = 0; i < pions2.length; i++)
       {
-        pions2[i].estToucher = true
-        ToastAndroid.show("Touche", ToastAndroid.SHORT);    
-        return
+        let touche = pionsSeTouchent(croixPositions2[croixPositions2.length-1].position, pions2[i].position, 12.5, 12.5) 
+        if(touche)
+        {
+          
+
+          if(pions2[i].estToucher == false)
+          {
+            pions2[i].estToucher = true
+
+            ToastAndroid.show("J1 a Touche", ToastAndroid.SHORT);
+            const tab = pions2.slice()
+            tab[i].estVisible = true
+            setPions2(tab)
+          }
+              
+          return
+        }
       }
     }
+    else if(currentGameState == GameStates.TOUR_JOUEUR2_TERMINE)
+    {
+      
+      for(let i = 0; i < pions.length; i++)
+      {
+        let touche = pionsSeTouchent(croixPositions1[croixPositions1.length-1].position, pions[i].position, 12.5, 12.5) 
+        if(touche)
+        {
+          
+
+          if(pions[i].estToucher == false)
+          {
+            pions[i].estToucher = true
+            ToastAndroid.show("J2 a Touche", ToastAndroid.SHORT);
+          } 
+
+          return
+        }
+      }
+    }
+
+    
   }
 
   // Utiliser pour simuler l'action du 2en joueur(CPU)
   function cpuPlay()
   {
-    ToastAndroid.show("CPU", ToastAndroid.SHORT)
+    //ToastAndroid.show("CPU", ToastAndroid.SHORT)
 
     if(true)
     {
@@ -259,7 +301,9 @@ function El(): React.JSX.Element {
       setCroixPositions1 ([...croixPositions1, 
       newcroix]);
 
+
       setCurrentGameState(GameStates.TOUR_JOUEUR2_TERMINE)
+      
     }
     
       
@@ -316,14 +360,11 @@ function El(): React.JSX.Element {
       setTimeout(() => {
 
         actionsCpu()
-        ToastAndroid.show("apres 3 segonde", ToastAndroid.SHORT)
+        //ToastAndroid.show("apres 3 segonde", ToastAndroid.SHORT)
         //
-        setTimeout(() => 
-        {
-          setCurrentGameState(GameStates.TOUR_JOUEUR2_TERMINE)
-        }, 500)
+        
 
-      }, 3000)
+      }, 1000)
 
     }
     else
@@ -412,7 +453,7 @@ function El(): React.JSX.Element {
 
   const MenuStateTourJoueur1termine = () =>
   {
-    GameStates.TOUR_JOUEUR1_TERMINE
+    
     return (
       <View style={styles.container2FootMenu}>
         <TouchableOpacity style={styles.button} onPress={handleCedeTour}>
@@ -478,12 +519,22 @@ function El(): React.JSX.Element {
   }
     , [croixPositions2])
 
+
   useEffect( () => {
     
+    
+    
     contorleGameFinish()
+    //ToastAndroid.show(currentGameState+"rc", ToastAndroid.SHORT)
     
   }
     , [croixPositions1])
+
+  useEffect(() => {
+
+    hitPions()
+
+  }, [currentGameState])
   
   useEffect(() => {
     
@@ -549,7 +600,7 @@ function El(): React.JSX.Element {
             key={index}
             style={[styles.element2, { left: pion.position.x, top: pion.position.y }]}>
 
-              <View style={{position: "absolute", left: -12.5, top: -12.5, width: 25, height: 25, backgroundColor:"red"}}/>
+              {pion.estVisible && <View style={{position: "absolute", left: -12.5, top: -12.5, width: 25, height: 25, backgroundColor:"red"}}/>}
 
             </View>  
 
