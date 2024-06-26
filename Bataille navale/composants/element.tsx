@@ -10,8 +10,11 @@ const desiredHeight: Float = height * 0.9;
 const desiredWidth: Float = width * 1;
 const heightFootmenu: Float = height - desiredHeight
 const WidthFootmenu: Float = width * 1
-const TERRAIN_DE_JEUX1 = 1
-const TERRAIN_DE_JEUX2 = 2
+const TERRAIN_DE_JEUX1 = 0
+const TERRAIN_DE_JEUX2 = 1
+const PLAYER1 = 0
+const PLAYER2 = 1
+
 enum GameStates{
   PLACE_PIONS,
   POSITIONNE_CROIX,
@@ -28,6 +31,16 @@ interface PionPosition {
   x: number;
   y: number;
 }
+interface Pion{
+  position: PionPosition;
+  estToucher: Boolean;
+}
+
+interface Croix{
+  position: PionPosition;
+  aToucher: Boolean;
+}
+
 
 
 
@@ -74,10 +87,12 @@ function getPositionAleatoire(
 function El(): React.JSX.Element {
 
   const [position, setPosition] = useState({x: 0,y: 0});
-  const [pionPositions, setPionPositions] = useState<PionPosition[]>([]);
-  const [pionPositions2, setPionPositions2] = useState<PionPosition[]>([]);
-  const [croixPositions1, setCroixPositions1] = useState<PionPosition[]>([]);
-  const [croixPositions2, setCroixPositions2] = useState<PionPosition[]>([]);
+  const [pions, setPions] = useState<Pion[]>([]);
+  const [pions2, setPions2] = useState<Pion[]>([]);
+  const [croixPositions1, setCroixPositions1] = useState<Croix[]>([]);
+  const [croixPositions2, setCroixPositions2] = useState<Croix[]>([]);
+  const [killPlayeur1, setKillPlayeur1] = useState(0);
+  const [killPlayeur2, setKillPlayeur2] = useState(0);
   
   const [terrainVisible, setTerrainVisible] = useState<Boolean>(true)
   const [currentGameState, setCurrentGameState] = useState(GameStates.PLACE_PIONS) 
@@ -93,14 +108,21 @@ function El(): React.JSX.Element {
     if(currentGameState === GameStates.PLACE_PIONS)
     {
       
-      if(pionPositions.length == nombreMaxPion)
+      if(pions.length == nombreMaxPion)
       {
         return
       }
       else
       {
-        setPionPositions([...pionPositions, 
-          { x: restreindre(locationX, desiredWidth, 0), y: restreindre(locationY, desiredHeight, 0) }])
+        let newPion: Pion = {
+          position: { x: restreindre(locationX, desiredWidth, 0), y: restreindre(locationY, desiredHeight, 0) },
+
+          estToucher: false
+
+        }
+
+        setPions([...pions, 
+          newPion])
           ;
       }
       
@@ -108,6 +130,8 @@ function El(): React.JSX.Element {
     }
     
   }
+
+  // Utiliser pour positionner les croix  
   const handlePressPosCroix = (event: any) =>
   {
     // recuperation des coodonnees ecrans
@@ -120,9 +144,18 @@ function El(): React.JSX.Element {
       {
 
       }
+
+      let newCroix: Croix = {
+
+        position: { x: restreindre(locationX, desiredWidth, 0), y: restreindre(locationY, desiredHeight, 0) },
+        aToucher: false
+
+      } 
+
       setCroixPositions2 ([...croixPositions2, 
-        { x: restreindre(locationX, desiredWidth, 0), y: restreindre(locationY, desiredHeight, 0) }]);
+        newCroix]);
       
+        
       // changement de l'etat du jeu
       setCurrentGameState(GameStates.TOUR_JOUEUR1_TERMINE)
     }
@@ -140,18 +173,24 @@ function El(): React.JSX.Element {
   
   // Utiliser pour ajouter les pions de maniere aleatoire sur le terrain 2
   const handlerAutoAjoutPion = () => {
-    if (pionPositions2.length === nombreMaxPion) {
+    if (pions2.length === nombreMaxPion) {
       return; // Si l'array est déjà plein, sortir de la fonction
     }
     
-    const newPionPositions = []; // Créer un nouvel array pour stocker les nouvelles positions
+    const newPion = []; // Créer un nouvel array pour stocker les nouvelles positions
     
     for (let i = 0; i < nombreMaxPion; i++) {
       const pos = getPositionAleatoire(0, desiredWidth, 0, desiredHeight);
-      newPionPositions.push({ x: restreindre(pos.x, desiredWidth, 0), y: restreindre(pos.y, desiredHeight, 0) }); // Ajouter la nouvelle position à l'array temporaire
+      newPion.push({
+
+        position: { x: restreindre(pos.x, desiredWidth, 0), y: restreindre(pos.y, desiredHeight, 0) },
+        estToucher: false
+
+      }
+        ); // Ajouter la nouvelle position à l'array temporaire
     }
   
-    setPionPositions2([...pionPositions2, ...newPionPositions]); // Ajouter toutes les nouvelles positions à l'array existant
+    setPions2([...pions2, ...newPion]); // Ajouter toutes les new pions à l'array existant
   };
 
   // Utiliser pour effacer les pions sur un terrain
@@ -159,11 +198,11 @@ function El(): React.JSX.Element {
     
     if(terrainDejeux === TERRAIN_DE_JEUX1)
     {
-      setPionPositions([])
+      setPions([])
     }
     else if(terrainDejeux === TERRAIN_DE_JEUX2)
     {
-      setPionPositions2([])
+      setPions2([])
     }
     
     
@@ -184,11 +223,12 @@ function El(): React.JSX.Element {
   // utiliser pour savoir si un joueur a toucher des pions
   function hitPions()
   {
-    for(let i = 0; i < pionPositions2.length; i++)
+    for(let i = 0; i < pions2.length; i++)
     {
-      let touche = pionsSeTouchent(croixPositions2[croixPositions2.length-1], pionPositions2[i], 25, 25) 
+      let touche = pionsSeTouchent(croixPositions2[croixPositions2.length-1].position, pions2[i].position, 12.5, 12.5) 
       if(touche)
       {
+        pions2[i].estToucher = true
         ToastAndroid.show("Touche", ToastAndroid.SHORT);    
         return
       }
@@ -210,8 +250,15 @@ function El(): React.JSX.Element {
       // generation d'une position aleatoire
       const pos = getPositionAleatoire(0, desiredWidth, 0, desiredHeight);
       // ajout de la position
+      let newcroix: Croix = {
+
+        position: { x: restreindre(pos.x, desiredWidth, 0), y: restreindre(pos.y, desiredHeight, 0) },
+        aToucher: false
+      } 
+
       setCroixPositions1 ([...croixPositions1, 
-      { x: restreindre(pos.x, desiredWidth, 0), y: restreindre(pos.y, desiredHeight, 0) }]);
+      newcroix]);
+
       setCurrentGameState(GameStates.TOUR_JOUEUR2_TERMINE)
     }
     
@@ -229,7 +276,7 @@ function El(): React.JSX.Element {
   // Utiliser pour l'ancer le jeu
   const handleStartGame = () =>
   {
-    if(pionPositions.length == nombreMaxPion)
+    if(pions.length == nombreMaxPion)
     {
       // Ajout des pions automatiquement sur le terrain2 par cpu
       handlerAutoAjoutPion()
@@ -242,15 +289,14 @@ function El(): React.JSX.Element {
       Alert.alert('Partie commencée', 'La partie a commencé, positionnez votre croix où vous pensez que les pions adverses peuvent se trouver.', [{ text: 'OK' }]);
 
     }
-
-    
-    
+  
   }
+
   const handleJouer = () =>
   {
     // Ajout des pions automatiquement sur le terrain2 par cpu
     //handlerAutoAjoutPion()
-    // state = GameStates.POSITIONNE_CROIX
+   // state = GameStates.POSITIONNE_CROIX
 
     setCurrentGameState(GameStates.POSITIONNE_CROIX)
 
@@ -287,13 +333,66 @@ function El(): React.JSX.Element {
     
   }
 
-  
+  function getNonbrePionToucher(player: any)
+  {
+    let count = 0
+    if(player === PLAYER1)
+    { 
+      
+      for(let i = 0; i < pions.length; i++)
+      {
+        if(pions[i].estToucher == true)
+        {
+          count ++ 
+        }
+      }
+      
+    }
+    else if((player === PLAYER2))
+    {
+      for(let i = 0; i < pions2.length; i++)
+      {
+        if(pions2[i].estToucher == true)
+        {
+          count ++ 
+        }
+      }
+    }
+    return count
+  }
+
+
+  function contorleGameFinish()
+  {
+    let nbPionPlayer1Toucher = getNonbrePionToucher(PLAYER1)
+    let nbPionPlayer2Toucher = getNonbrePionToucher(PLAYER2)
+        
+    if(nbPionPlayer1Toucher >= nombreMaxPion)
+    {
+      setCurrentGameState(GameStates.JEU_TERMINE);
+      Alert.alert("GAME TERMINER", "JOUEUR 2 A GAGNE!!")
+      
+      return
+    }
+
+    if(nbPionPlayer2Toucher >= nombreMaxPion)
+    {
+      setCurrentGameState(GameStates.JEU_TERMINE);
+      Alert.alert("GAME TERMINER", "JOUEUR 1 A GAGNE!!")
+      
+      return
+    }
+
+
+  }
 
   function setState(etat:number)
   {
     state = etat
   }
 
+  
+  // Mes composants locaux
   const MenuStatePlacePions = () =>
   { 
     return (
@@ -310,8 +409,7 @@ function El(): React.JSX.Element {
       </View>
     )
   }
-  
-  // Mes composants locaux
+
   const MenuStateTourJoueur1termine = () =>
   {
     GameStates.TOUR_JOUEUR1_TERMINE
@@ -336,15 +434,56 @@ function El(): React.JSX.Element {
     )
   }
 
+  const UIKillPlayers = () => 
+  {
+    const stylesUIKillPlayers =  StyleSheet.create({
+      container: {
+        flex: 1,
+        justifyContent: "space-between",
+        flexDirection: "row",
+        alignItems: "center", 
+        opacity: 1,
+        position: "absolute",
+        pointerEvents:"none",
+        width: desiredWidth,
+        height: 60
+  
+      },
+      TextKill: {
+        fontSize: 30,
+        fontWeight: "700",
+        margin: 10,
+
+      }
+  
+    })
+    return(
+      <View style={stylesUIKillPlayers.container}>
+        <Text style={stylesUIKillPlayers.TextKill}>{killPlayeur1}</Text>
+        <Text style={stylesUIKillPlayers.TextKill}>{killPlayeur2}</Text>
+      </View>
+    )
+  }
+
+
 
   
   
 
   // Declaration des UseEffects
   useEffect( () => {
+
     hitPions()
+    contorleGameFinish()
   }
     , [croixPositions2])
+
+  useEffect( () => {
+    
+    contorleGameFinish()
+    
+  }
+    , [croixPositions1])
   
   useEffect(() => {
     
@@ -369,20 +508,28 @@ function El(): React.JSX.Element {
         </TouchableOpacity>
 
         <View style={{height: desiredHeight, width: desiredWidth, position:"absolute", pointerEvents: "none"}}>
-          {pionPositions.map((pion, index) => (
+          
+          {pions.map((pion, index) => (
 
             <View
             key={index}
-            style={[styles.element, { left: pion.x, top: pion.y }]}/>
+            style={[styles.element, { left: pion.position.x, top: pion.position.y }]}>
+
+              <View style={{position: "absolute", left: -12.5, top: -12.5, width: 25, height: 25, backgroundColor:"blue"}}/>
+
+            </View>  
 
           ))}
 
-          {croixPositions1.map((pion, index) => (    
+          {croixPositions1.map((croix, index) => (    
             <View
             key={index}
-            style={[styles.element3, { left: pion.x, top: pion.y }]}/>
+            style={[styles.element3, { left: croix.position.x, top: croix.position.y }]}>
+              <View style={{position: "absolute", left: -12.5, top: -12.5, width: 25, height: 25, backgroundColor:'orange'}}/>
+            </View>
 
           ))}
+          <UIKillPlayers/>    
         </View>
 
       </View>}
@@ -396,25 +543,33 @@ function El(): React.JSX.Element {
         </TouchableOpacity>
 
         <View style={{height: desiredHeight, width: desiredWidth, position:"absolute", pointerEvents: "none" }}>
-          {pionPositions2.map((pion, index) => (
+          {pions2.map((pion, index) => (
           
             <View
             key={index}
-            style={[styles.element2, { left: pion.x, top: pion.y }]}/>
+            style={[styles.element2, { left: pion.position.x, top: pion.position.y }]}>
+
+              <View style={{position: "absolute", left: -12.5, top: -12.5, width: 25, height: 25, backgroundColor:"red"}}/>
+
+            </View>  
 
           ))}
 
-          {croixPositions2.map((pion, index) => (
+          {croixPositions2.map((croix, index) => (
           
             <View
             key={index}
-            style={[styles.element3, { left: pion.x, top: pion.y }]}/>
+            style={[styles.element3, { left: croix.position.x, top: croix.position.y }]}>
+              <View style={{position: "absolute", left: -12.5, top: -12.5, width: 25, height: 25, backgroundColor:'orange'}}/>        
+            </View>
 
           ))}
-          
+          <UIKillPlayers/>
         </View>
-
+        
       </View>}
+
+      
 
       <View style={{height: heightFootmenu, width: WidthFootmenu, backgroundColor: "white"}}> 
         { currentGameState == GameStates.PLACE_PIONS && <MenuStatePlacePions/>}
@@ -423,6 +578,7 @@ function El(): React.JSX.Element {
       </View>    
 
     </View>
+    
 
     
   );
@@ -440,19 +596,19 @@ const styles = StyleSheet.create({
   element: {
     width: 25,
     height: 25,
-    backgroundColor: 'blue',
+    //backgroundColor: 'white',
     position: 'absolute',
   },
   element2: {
     width: 25,
     height: 25,
-    backgroundColor: 'red',
+    //backgroundColor: 'red',
     position: 'absolute',
   },
   element3: {
     width: 25,
     height: 25,
-    backgroundColor: 'orange',
+    //backgroundColor: 'white',
     position: 'absolute',
   },
   button: {
