@@ -1,6 +1,6 @@
 /* eslint-disable prettier/prettier */
 import React, {EventHandler, useEffect, useLayoutEffect, useRef, useState} from 'react';
-import {Alert, Animated, Button, Dimensions, PanResponder, StyleSheet, Text, ToastAndroid, TouchableOpacity, TouchableWithoutFeedback, View} from 'react-native';
+import {Alert, Animated, Button, Dimensions, Image, PanResponder, StyleSheet, Text, ToastAndroid, TouchableOpacity, TouchableWithoutFeedback, View} from 'react-native';
 import { EventArgs } from 'react-native/Libraries/Performance/Systrace';
 import { Float, Int32 } from 'react-native/Libraries/Types/CodegenTypes';
 import EventEmitter from 'react-native/Libraries/vendor/emitter/EventEmitter';
@@ -97,7 +97,7 @@ function El(): React.JSX.Element {
   
   const [terrainVisible, setTerrainVisible] = useState<Boolean>(true)
   const [currentGameState, setCurrentGameState] = useState(GameStates.PLACE_PIONS) 
-  const nombreMaxPion = 10;
+  const nombreMaxPion = 5;
   
 
 
@@ -234,7 +234,7 @@ function El(): React.JSX.Element {
     {
       for(let i = 0; i < pions2.length; i++)
       {
-        let touche = pionsSeTouchent(croixPositions2[croixPositions2.length-1].position, pions2[i].position, 12.5, 12.5) 
+        let touche = pionsSeTouchent(croixPositions2[croixPositions2.length-1].position, pions2[i].position, 35, 35) 
         if(touche)
         {
           
@@ -258,7 +258,7 @@ function El(): React.JSX.Element {
       
       for(let i = 0; i < pions.length; i++)
       {
-        let touche = pionsSeTouchent(croixPositions1[croixPositions1.length-1].position, pions[i].position, 12.5, 12.5) 
+        let touche = pionsSeTouchent(croixPositions1[croixPositions1.length-1].position, pions[i].position, 35, 35) 
         if(touche)
         {
           
@@ -402,7 +402,7 @@ function El(): React.JSX.Element {
     return count
   }
 
-
+  // Utiliser pour controler la fin du jeu
   function contorleGameFinish()
   {
     let nbPionPlayer1Toucher = getNonbrePionToucher(PLAYER1)
@@ -566,21 +566,30 @@ function El(): React.JSX.Element {
             key={index}
             style={[styles.element, { left: pion.position.x, top: pion.position.y }]}>
 
-              <View style={{position: "absolute", left: -12.5, top: -12.5, width: 25, height: 25, backgroundColor:"blue"}}/>
+              <View style={{position: "absolute", left: -35, top: -35, width: 70, height: 70, 
+              //backgroundColor:"blue",
+              flex: 1, justifyContent: 'center', alignItems: 'center'}}>
+                <Image source={require('../game_assets/pion1.png')} style={{ width:70, height:70,resizeMode:"contain"}}/>
+              </View>  
 
             </View>  
 
           ))}
 
-          {croixPositions1.map((croix, index) => (    
+          {croixPositions1.map((croix, index) => (   
             <View
             key={index}
             style={[styles.element3, { left: croix.position.x, top: croix.position.y }]}>
-              <View style={{position: "absolute", left: -12.5, top: -12.5, width: 25, height: 25, backgroundColor:'orange'}}/>
+              <View style={{position: "absolute", left: -35, top: -35, width: 70, height: 70, 
+              //backgroundColor:'orange', 
+              flex: 1, justifyContent: 'center', alignItems: 'center'}}>
+                <Image source={require('../game_assets/croix.png')} style={{ width:70, height:70,resizeMode:"contain"}}/>
+              </View>  
             </View>
-
           ))}
-          <UIKillPlayers/>    
+
+          <UIKillPlayers/>
+              
         </View>
 
       </View>}
@@ -597,10 +606,14 @@ function El(): React.JSX.Element {
           {pions2.map((pion, index) => (
           
             <View
-            key={index}
-            style={[styles.element2, { left: pion.position.x, top: pion.position.y }]}>
+              key={index}
+              style={[styles.element2, { left: pion.position.x, top: pion.position.y }]}>
 
-              {pion.estVisible && <View style={{position: "absolute", left: -12.5, top: -12.5, width: 25, height: 25, backgroundColor:"red"}}/>}
+              {pion.estVisible && <View style={{position: "absolute", left: -35, top: -35, width: 70, height: 70, 
+              //backgroundColor:"red", 
+              flex: 1, justifyContent: 'center', alignItems: 'center'}}>
+                <Image source={require('../game_assets/pion2.png')} style={{ width:70, height:70,resizeMode:"contain"}}/>
+              </View>}
 
             </View>  
 
@@ -611,7 +624,11 @@ function El(): React.JSX.Element {
             <View
             key={index}
             style={[styles.element3, { left: croix.position.x, top: croix.position.y }]}>
-              <View style={{position: "absolute", left: -12.5, top: -12.5, width: 25, height: 25, backgroundColor:'orange'}}/>        
+              <View style={{position: "absolute", left: -35, top: -35, width: 70, height: 70, 
+              //backgroundColor:'orange',
+              flex: 1, justifyContent: 'center', alignItems: 'center'}}>
+                <Image source={require('../game_assets/croix.png')} style={{ width:70, height:70,resizeMode:"contain"}}/>
+              </View>        
             </View>
 
           ))}
@@ -645,20 +662,21 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   element: {
-    width: 25,
-    height: 25,
+    width: 70,
+    height: 70,
     //backgroundColor: 'white',
     position: 'absolute',
   },
   element2: {
-    width: 25,
-    height: 25,
+    width: 70,
+    height: 70,
     //backgroundColor: 'red',
     position: 'absolute',
   },
   element3: {
-    width: 25,
-    height: 25,
+    width: 70,
+    height: 70,
+    opacity: 0.7,
     //backgroundColor: 'white',
     position: 'absolute',
   },
